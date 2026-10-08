@@ -1,6 +1,6 @@
 # LegacySteamFixer
 
-面向 Windows 7 SP1 / 8.1 等旧系统的 Steam 游戏兼容工具。当前版本：**0.4.0-test10（测试版）**。
+面向 Windows 7 SP1 / 8.1 等旧系统的 Steam 游戏兼容工具。当前版本：**0.4.0-test11（测试版）**。
 
 ## 使用
 
@@ -53,3 +53,11 @@ Windows 下运行 `Build.cmd` 编译主工具与探测器。预编译桥接、�
 ## 许可
 
 主项目使用 MIT 许可证，见 `LICENSE.txt`。第三方项目的许可证与来源保留在 `LICENSE-GMod.txt`、`LICENSE-tModLoader.txt`、`zstd` 和 `UPSTREAM.txt` 中。
+
+## test11：通用修补与更新
+
+GMod/tModLoader 的新修补与其他游戏共用通用分析、注入或替换流程，不再新安装专用模块。已有专用补丁仍可启动或还原；切换前请先还原。通用引擎目前只覆盖已支持的原生 x64 SDK，GMod 32 位及 tModLoader 托管接口路径不保证可生成方案；暂不支持时明确报告失败。
+
+标题区“检查更新”通过本仓库的已发布 Releases 检查版本，可选择包含测试版。发现更新后展示发行说明，选择“下载更新”并指定 ZIP 保存位置。下载需要 GitHub 资产 digest 或匹配运行包文件名的 SHA256 附件，校验通过才保存。没有 Release 时显示暂无更新；连接失败会显示操作失败。
+
+下载后手动解压到新目录，复制旧 profiles 保留启动配置。不会自动安装、覆盖正在运行的程序或改动游戏备份。旧系统连接 GitHub 需具备可用的 TLS 1.2 和证书。

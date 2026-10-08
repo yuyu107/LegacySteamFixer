@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "version": "0.4.0-test10",
-  "tag": "v0.4.0-test10",
+  "version": "0.4.0-test11",
+  "tag": "v0.4.0-test11",
   "channel": "preview",
   "prerelease": true,
-  "repository_url": null,
+  "repository_url": "https://github.com/yuyu107/LegacySteamFixer",
   "release_url": null,
   "asset_url": null,
   "sha256": null,
