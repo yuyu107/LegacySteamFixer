@@ -1,2 +1,4 @@
 https://github.com/yuyu107/GMod-LegacySteam 7110b1b2bb36fc2b6c3a3c39ccfb3e68bf89f22d
 https://github.com/yuyu107/tModLoader-LegacySteam be5c3760083b61a13741d8d4984744990b981be3
+Steam appinfo format reference (independent parser implementation):
+https://github.com/xPaw/SteamAppInfo/blob/master/README.md
