@@ -1,7 +1,7 @@
 using System;using System.IO;using System.Text;using System.Diagnostics;using System.Collections.Generic;using System.Web.Script.Serialization;using System.Security.Cryptography;
-public class LaunchProfile {public string Version="0.4.0-test1",Id,Name,Root,Exe,Steam,AppId,Mode,Api,ApiHash,ClientHash;}
+public class LaunchProfile {public string Version="0.4.0-test1",Id,Name,Root,Exe,Steam,AppId,Mode,Api,ApiHash,ClientHash,Arguments;public bool Overlay;}
 public static class LaunchProfiles {
- public static string InjectorHash="6ce3c5fb1a88089cefebd164b5b08523bb20e856553e5a0342dec5d83e24dad8",BridgeHash="13622f9e294efeb650ffbd07401e7f245b016438448dc2dc94ac406250f51acb";
+ public static string InjectorHash="07ca91057dcd36dbbc5b9401506600f5daf6d75d4907a6352e1d8aae6821ebba",BridgeHash="e314a78e9a56ea96ffd3a4628f5d279e71cff22fb37fa8135795b5d28d9163b3";
  public static string Folder{get{return Core.Inside(Core.Base,"profiles");}}
  public static string Id(string root,string exe){using(var h=SHA256.Create())return BitConverter.ToString(h.ComputeHash(Encoding.UTF8.GetBytes(Path.GetFullPath(root).ToLowerInvariant()+"|"+Path.GetFullPath(exe).ToLowerInvariant()))).Replace("-","").ToLowerInvariant();}
  public static void ValidateId(string id){if(id==null||id.Length!=64)throw new Exception("Invalid profile ID");foreach(char c in id)if(!((c>='0'&&c<='9')||(c>='a'&&c<='f')))throw new Exception("Invalid profile ID");}
@@ -32,7 +32,7 @@ public static class LaunchProfiles {
  }
  public static void Launch(LaunchProfile p,Action<string> log){ValidateForLaunch(p);if(p.Mode!="inject"){Process.Start(new ProcessStartInfo(Core.Inside(p.Steam,"steam.exe"),"-applaunch "+p.AppId){UseShellExecute=false});log("Launch request sent to Steam; verify actual gameplay.");return;}
  string exe=Core.Inside(p.Root,p.Exe),api=Core.Inside(p.Root,p.Api);string cfg=ConfigPath(p);if(cfg.Length>=230||Core.Base.Length>=220)throw new Exception("Move the tool to a shorter writable path before injection");Directory.CreateDirectory(Path.GetDirectoryName(cfg));foreach(string field in new[]{exe,p.Root,api,p.AppId})if(field.Length>=240||field.Contains("\r")||field.Contains("\n"))throw new Exception("Unsupported long path or newline in injection configuration");
- File.WriteAllText(cfg,exe+"\r\n"+p.Root+"\r\n"+api+"\r\n"+p.AppId+"\r\n",Encoding.Unicode);
+ LaunchOptions.Validate(p.Arguments);string renderer=p.Overlay?Core.Inside(p.Steam,"GameOverlayRenderer64.dll"):"";if(p.Overlay&&!File.Exists(renderer))throw new Exception("Steam overlay renderer is missing: "+renderer);if(renderer.Length>=240)throw new Exception("Steam overlay path is too long");File.WriteAllText(cfg,exe+"\r\n"+p.Root+"\r\n"+api+"\r\n"+p.AppId+"\r\n"+(p.Arguments??"")+"\r\n"+renderer+"\r\n",Encoding.Unicode);
  string helper=Core.Inside(Core.Base,"inject/LegacySteam-Injector.exe");using(var proc=Process.Start(new ProcessStartInfo(helper,"\""+cfg+"\""){UseShellExecute=false,WorkingDirectory=Core.Base})){if(!proc.WaitForExit(60000))throw new Exception("Injector still running; inspect injector log before retrying");if(proc.ExitCode!=0)throw new Exception("Injector failed, code "+proc.ExitCode+"; log: "+Path.Combine(Path.GetDirectoryName(cfg),"LegacySteam-Injector.log"));}
  if(Core.Hash(api)!=p.ApiHash)throw new Exception("Game SDK disk hash changed during launch");log("Injection bootstrap succeeded. Original SDK disk hash unchanged; verify gameplay.");log(Path.Combine(Path.GetDirectoryName(cfg),"LegacySteam-Injector.log"));
  }

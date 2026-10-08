@@ -6,7 +6,7 @@ if not exist "%FIXER_CSC%" (
  pause
  exit /b 1
 )
-"%FIXER_CSC%" /nologo /target:winexe /platform:anycpu /out:LegacySteamFixer.exe /reference:System.Windows.Forms.dll /reference:System.Drawing.dll /reference:System.Web.Extensions.dll src\Core.cs src\DeltaPatch.cs src\Program.cs src\Analysis.cs src\AutoBridge.cs src\LaunchProfiles.cs src\ZstdSupport.cs src\UiTheme.cs src\ThemedForm.cs src\UiDialogs.cs src\AppInfo.cs src\UpdateService.cs
+"%FIXER_CSC%" /nologo /target:winexe /platform:anycpu /out:LegacySteamFixer.exe /reference:System.Windows.Forms.dll /reference:System.Drawing.dll /reference:System.Web.Extensions.dll src\Core.cs src\DeltaPatch.cs src\Program.cs src\Analysis.cs src\AutoBridge.cs src\LaunchProfiles.cs src\ZstdSupport.cs src\UiTheme.cs src\ThemedForm.cs src\UiDialogs.cs src\AppInfo.cs src\UpdateService.cs src\LaunchOptions.cs
 if errorlevel 1 goto fail
 "%FIXER_CSC%" /nologo /target:exe /platform:x86 /out:probes\SteamProbe-x86.exe src\SteamProbe.cs
 if errorlevel 1 goto fail

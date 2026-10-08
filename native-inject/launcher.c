@@ -4,6 +4,7 @@
 #include <tlhelp32.h>
 #include <wincrypt.h>
 #include <stdint.h>
+DWORD _tls_index;
 static WCHAR logpath[MAX_PATH];
 void *memset(void *d,int c,size_t n){BYTE *p=d;while(n--)*p++=(BYTE)c;return d;}
 static void logline(const WCHAR *s){HANDLE h=CreateFileW(logpath,FILE_APPEND_DATA,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);if(h!=INVALID_HANDLE_VALUE){DWORD n;WriteFile(h,s,lstrlenW(s)*2,&n,NULL);WriteFile(h,L"\r\n",4,&n,NULL);CloseHandle(h);}}
@@ -28,27 +29,28 @@ static int runthread(HANDLE process,void *fn,void *param,DWORD *exitcode){
  int ok=GetExitCodeThread(t,exitcode);CloseHandle(t);return ok;
 }
 void WINAPI mainCRTStartup(void){
- static WCHAR package[MAX_PATH],dll[MAX_PATH],game[MAX_PATH],root[MAX_PATH],sdk[MAX_PATH],command[2048];
+ static WCHAR package[MAX_PATH],dll[MAX_PATH],game[MAX_PATH],root[MAX_PATH],sdk[MAX_PATH],command[4096];
  GetModuleFileNameW(NULL,package,MAX_PATH);WCHAR *last=NULL;for(WCHAR *p=package;*p;p++)if(*p==L'\\')last=p;if(!last)ExitProcess(1);*last=0;
  wsprintfW(dll,L"%s\\LegacySteam-InjectBridge.dll",package);
  int argc=0;WCHAR **argv=CommandLineToArgvW(GetCommandLineW(),&argc);if(!argv||argc!=2)ExitProcess(10);
- static WCHAR cfg[2048];HANDLE cf=CreateFileW(argv[1],GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
+ static WCHAR cfg[4096];HANDLE cf=CreateFileW(argv[1],GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
  if(cf==INVALID_HANDLE_VALUE)ExitProcess(11);DWORD cn=0;DWORD sz=GetFileSize(cf,NULL);
  if(sz<4||sz>sizeof(cfg)-2||!ReadFile(cf,cfg,sz,&cn,NULL)||cn!=sz||sz%2){CloseHandle(cf);ExitProcess(12);}CloseHandle(cf);cfg[sz/2]=0;
  if(cfg[0]!=0xfeff)ExitProcess(13);WCHAR *fields[4];WCHAR *cursor=cfg+1;
  for(int i=0;i<4;i++){fields[i]=cursor;while(*cursor&&*cursor!=L'\n'&&*cursor!=L'\r')cursor++;if(!*cursor)ExitProcess(14);*cursor++=0;if(*cursor==L'\n')cursor++;if(!*fields[i]||lstrlenW(fields[i])>=MAX_PATH)ExitProcess(15);}
+ WCHAR *arguments=cursor,*renderer=NULL;while(*cursor&&*cursor!=L'\r'&&*cursor!=L'\n')cursor++;if(*cursor){*cursor++=0;if(*cursor==L'\n')cursor++;renderer=cursor;while(*cursor&&*cursor!=L'\r'&&*cursor!=L'\n')cursor++;*cursor=0;}if(lstrlenW(arguments)>1500||(renderer&&lstrlenW(renderer)>=MAX_PATH))ExitProcess(22);
  lstrcpyW(game,fields[0]);lstrcpyW(root,fields[1]);lstrcpyW(sdk,fields[2]);WCHAR appid[64];if(lstrlenW(fields[3])>=64)ExitProcess(16);lstrcpyW(appid,fields[3]);
  for(WCHAR *p=appid;*p;p++)if(*p<L'0'||*p>L'9')ExitProcess(17);
  lstrcpyW(logpath,argv[1]);last=NULL;for(WCHAR *p=logpath;*p;p++)if(*p==L'\\')last=p;if(!last)ExitProcess(18);lstrcpyW(last+1,L"LegacySteam-Injector.log");LocalFree(argv);
  HANDLE logfile=CreateFileW(logpath,GENERIC_WRITE,FILE_SHARE_READ,NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);if(logfile!=INVALID_HANDLE_VALUE){WORD bom=0xfeff;DWORD n;WriteFile(logfile,&bom,2,&n,NULL);CloseHandle(logfile);}
- logline(L"=== LegacySteamFixer 0.4.0-test1 external injection ===");logline(game);logline(sdk);
+ logline(L"=== LegacySteamFixer 0.4.0-test1 launch-options / overlay test external injection ===");logline(game);logline(sdk);
  if(GetFileAttributesW(dll)==INVALID_FILE_ATTRIBUTES||GetFileAttributesW(game)==INVALID_FILE_ATTRIBUTES||GetFileAttributesW(sdk)==INVALID_FILE_ATTRIBUTES)ExitProcess(19);
  WCHAR before[65],after[65];if(!filehash(sdk,before)){lognum(L"SDK SHA256 read failure",GetLastError());ExitProcess(20);}logline(L"SDK SHA256 before bootstrap:");logline(before);
  HANDLE snap=CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0);PROCESSENTRY32W pe;pe.dwSize=sizeof(pe);int steam=0,active=0;
  if(snap!=INVALID_HANDLE_VALUE){if(Process32FirstW(snap,&pe))do{if(!lstrcmpiW(pe.szExeFile,L"steam.exe"))steam=1;WCHAR *gamename=game;for(WCHAR *p=game;*p;p++)if(*p==L'\\')gamename=p+1;if(!lstrcmpiW(pe.szExeFile,gamename))active=1;}while(Process32NextW(snap,&pe));CloseHandle(snap);}
  if(!steam||active){MessageBoxW(NULL,L"Run Steam and sign in first. Close existing game processes, then retry.",L"LegacySteam",MB_ICONERROR);ExitProcess(1);}
  if(!SetEnvironmentVariableW(L"SteamAppId",appid)||!SetEnvironmentVariableW(L"SteamGameId",appid))ExitProcess(21);logline(L"Installed manifest AppID:");logline(appid);
- wsprintfW(command,L"\"%s\" -logFile \"%s\\LegacySteam-Unity.log\"",game,root);
+ lstrcpyW(command,L"\"");lstrcatW(command,game);lstrcatW(command,L"\" ");lstrcatW(command,arguments);lstrcatW(command,L" -logFile \"");lstrcatW(command,root);lstrcatW(command,L"\\LegacySteam-Unity.log\"");logline(L"Requested game command line:");logline(command);
  STARTUPINFOW si={0};si.cb=sizeof(si);PROCESS_INFORMATION pi={0};
  if(!CreateProcessW(game,command,NULL,NULL,FALSE,CREATE_SUSPENDED,NULL,root,&si,&pi)){lognum(L"CreateProcess error",GetLastError());MessageBoxW(NULL,L"Could not create game. See LegacySteam-Injector.log.",L"LegacySteam",MB_ICONERROR);ExitProcess(1);}
  lognum(L"Created suspended game PID",pi.dwProcessId);int ok=0;LPVOID remote=NULL;DWORD code=0;
@@ -74,6 +76,7 @@ void WINAPI mainCRTStartup(void){
  if(!runthread(pi.hProcess,(void*)(bridgebase+off),remote,&code))goto done;
  lognum(L"BridgeStart result",code);if(code!=0)goto done;
  if(!filehash(sdk,after)||lstrcmpW(before,after)){logline(L"SDK changed during bootstrap; refusing to resume");goto done;}logline(L"SDK SHA256 after bootstrap (unchanged):");logline(after);
+ if(renderer&&*renderer){logline(L"Experimental overlay renderer:");logline(renderer);if(GetFileAttributesW(renderer)!=INVALID_FILE_ATTRIBUTES&&WriteProcessMemory(pi.hProcess,remote,renderer,(lstrlenW(renderer)+1)*2,&got)&&runthread(pi.hProcess,remoteLoad,remote,&code)){uintptr_t overlay=modulebase(pi.dwProcessId,L"GameOverlayRenderer64.dll");lognum(L"Overlay module present (loading does not prove Shift+Tab works)",overlay?1:0);}else {lognum(L"Overlay bootstrap failed",GetLastError());goto done;}}else logline(L"Experimental overlay loading disabled");
  if(ResumeThread(pi.hThread)==(DWORD)-1)goto done;ok=1;logline(L"Game primary thread resumed. Injection ready; actual gameplay remains unverified.");
  done:
  if(!ok){lognum(L"Bootstrap failure / last Win32 error",GetLastError());TerminateProcess(pi.hProcess,1);WaitForSingleObject(pi.hProcess,3000);MessageBoxW(NULL,L"Bootstrap failed; only the game process created by this launcher was ended. Send LegacySteam-Injector.log and LegacySteam-InjectBridge.log.",L"LegacySteam",MB_ICONERROR);}
