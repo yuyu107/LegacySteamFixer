@@ -1,0 +1,6 @@
+SteamLegacyZstd
+https://github.com/yuyu107/SteamLegacyZstd
+Integrated from existing SteamLegacyZstd_Unified_test4_i18n package (2026-10-02). Launcher, decoder DLL and hook are unchanged. Original licenses retained.
+00379bbec671d71cef53bb5375c2db17601ca1fd331b74c5975821fa92b86389  OldSteam_VSZa_Launcher.exe
+6dea9ef6f0fd1a956dc81f63551fb27ff280082b87de4790271e5f6f3247e5bb  steam_zstd.dll
+fcbadbf70e968b380c564258401c02d28d0b0d676d5b0b43ecd67d54880db055  vsza_hook.bin

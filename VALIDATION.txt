@@ -1,0 +1,8 @@
+LegacySteamFixer 0.4.0-test8 validation
+Main executable compiles against .NET Framework 4.0.
+Changes limited to presentation code and build manifest.
+ThemedForm uses user32 APIs available on Win7 for caption dragging and standard non-client hit test codes for resizing.
+Main/settings/repair/Zstd dialogs use ThemedForm; file picker and message boxes remain native.
+Button background uses bounded FillRectangle; text uses DrawString rather than native HDC text drawing.
+Native injection, template, launcher, Zstd and backend sources unchanged from test7.
+Actual Windows visual, DPI, caption behavior and rendering validation pending.

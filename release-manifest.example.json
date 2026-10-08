@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "version": "0.4.0-test10",
+  "tag": "v0.4.0-test10",
+  "channel": "preview",
+  "prerelease": true,
+  "repository_url": null,
+  "release_url": null,
+  "asset_url": null,
+  "sha256": null,
+  "minimum_os": "Windows 7 SP1",
+  "minimum_dotnet": "4.0"
+}

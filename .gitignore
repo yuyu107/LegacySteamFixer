@@ -1,0 +1,10 @@
+# Local user state and generated diagnostics
+profiles/
+*.log
+*-Diagnostics.txt
+*Tests.exe
+UIPreview.exe
+*.pdb
+*.obj
+*.lib
+*.zip

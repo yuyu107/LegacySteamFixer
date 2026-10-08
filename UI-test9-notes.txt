@@ -1,0 +1,9 @@
+0.4.0-test9
+- Explicit toolbar/filter row sizing to address clipped or missing text.
+- Responsive game columns; full game name and path available in item tooltip.
+- Separate Steam tools section: folder selection, Zstd patch, official Steam installer page.
+- Installer entry opens https://store.steampowered.com/about/ in the default browser.
+- Target Zstd client: 1730853000; the existing SHA256 check remains mandatory.
+- Upstream installer guidance: https://github.com/yuyu107/SteamLegacyZstd
+- Injection and game patch engines are unchanged from test8.
+- Compiled against .NET Framework 4 reference assemblies. Windows GUI rendering still requires user verification.
