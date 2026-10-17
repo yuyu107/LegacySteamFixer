@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - src/AppInfo.cs
+      - tools/**
       - .github/workflows/release.yml
     tags:
       - 'v*'
