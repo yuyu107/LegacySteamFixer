@@ -8,3 +8,8 @@ UIPreview.exe
 *.obj
 *.lib
 *.zip
+
+settings/
+logs/
+LegacySteamFixer.exe
+probes/

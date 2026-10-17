@@ -1,0 +1,20 @@
+using System;using System.IO;using System.Collections.Generic;
+class SelfUpdateTests {
+ static void A(bool v,string message){if(!v)throw new Exception(message);}
+ static void Reject(Action action){bool rejected=false;try{action();}catch{rejected=true;}A(rejected,"Expected refusal");}
+ static void Put(string root,string rel,string value){string p=Core.Inside(root,rel);Directory.CreateDirectory(Path.GetDirectoryName(p));File.WriteAllText(p,value);}
+ static void Main(string[] args){string fixtures=args[0],work=Path.Combine(Path.GetTempPath(),"fixer-update-tests-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(work);string saved=Core.Base;
+ try {
+  foreach(string name in new[]{"traversal","duplicate","reserved","crc","protected","missing"})Reject(()=>SelfUpdate.Stage(Path.Combine(fixtures,name+".zip"),Path.Combine(work,name),Path.Combine(work,"target"),"v999.0.0"));
+  var ticket=SelfUpdate.Stage(Path.Combine(fixtures,"valid.zip"),Path.Combine(work,"valid"),Path.Combine(work,"target"),"v999.0.0");
+  Put(ticket.Target,"LegacySteamFixer.exe","old exe");Put(ticket.Target,"zstd/steam_zstd.dll","old module");Put(ticket.Target,"zstd/OldSteam_VSZa_Launcher.exe","obsolete");Put(ticket.Target,"profiles/game.json","keep profile");Put(ticket.Target,"settings/update.json","keep settings");Put(ticket.Target,"logs/game.txt","keep logs");
+  int writes=0;Reject(()=>SelfUpdate.Apply(ticket,Path.Combine(work,"rollback"),s=>{if(++writes==ticket.Files.Length)throw new IOException("simulated mid-update failure");}));
+  A(File.ReadAllText(Path.Combine(ticket.Target,"LegacySteamFixer.exe"))=="old exe","original exe restored");A(File.ReadAllText(Path.Combine(ticket.Target,"zstd/steam_zstd.dll"))=="old module","module restored");A(!File.Exists(Path.Combine(ticket.Target,"modules/catalog.json")),"new file removed on rollback");
+  string module=Core.Inside(ticket.Stage,"zstd/steam_zstd.dll");byte[] original=File.ReadAllBytes(module);File.AppendAllText(module,"tampered");Reject(()=>SelfUpdate.Apply(ticket,Path.Combine(work,"tamper"),null));A(File.ReadAllText(Path.Combine(ticket.Target,"LegacySteamFixer.exe"))=="old exe","staging tamper blocked before writes");File.WriteAllBytes(module,original);
+  SelfUpdate.Apply(ticket,Path.Combine(work,"backup"),null);foreach(var f in ticket.Files)A(Core.Hash(Core.Inside(ticket.Target,f.Path))==f.Hash,"installed hash: "+f.Path);
+  A(!File.Exists(Path.Combine(ticket.Target,"zstd/OldSteam_VSZa_Launcher.exe")),"obsolete launcher removed");A(File.ReadAllText(Path.Combine(ticket.Target,"profiles/game.json"))=="keep profile","profile preserved");A(File.ReadAllText(Path.Combine(ticket.Target,"settings/update.json"))=="keep settings","settings preserved");A(File.ReadAllText(Path.Combine(ticket.Target,"logs/game.txt"))=="keep logs","logs preserved");
+  Core.Base=Path.Combine(work,"settings-test");var settings=new UpdateSettings();DateTime now=DateTime.UtcNow;A(settings.Due(now),"automatic enabled by default");settings.LastAttemptUtc=now;A(!settings.Due(now.AddHours(23)),"daily interval");A(settings.Due(now.AddHours(25)),"next day");settings.Automatic=false;settings.Preview=false;settings.Save();var reload=UpdateSettings.Load();A(!reload.Automatic&&!reload.Preview,"settings round trip");settings.Save();File.WriteAllText(UpdateSettings.FilePath,"invalid");A(UpdateSettings.Load().Automatic,"invalid settings fallback");
+  var cancel=new System.Threading.CancellationTokenSource();cancel.Cancel();Reject(()=>UpdateService.Download(null,Path.Combine(work,"download.zip"),null,cancel.Token));A(!File.Exists(Path.Combine(work,"download.zip")),"cancelled download creates no destination");
+  Console.WriteLine("PASS: Python ZIP fixtures; traversal, duplicates, device names, CRC, protected paths, incomplete package; version check; staged tamper; mid-update rollback; successful replacement; retained profiles/settings/logs; obsolete launcher removal; settings and cancellation. No Windows process restart or UAC test.");
+ }finally{Core.Base=saved;Directory.Delete(work,true);}}
+}

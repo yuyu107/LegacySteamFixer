@@ -11,7 +11,8 @@ public class Module { public string Id,AppId,Name,Marker,Preflight; public bool 
 public class Game { public string AppId,Name,Root,Status,Detail; public Module Module; public override string ToString(){return Name;} }
 public static class Core {
  public static string Base=AppDomain.CurrentDomain.BaseDirectory;
- public static Module[] Modules=new JavaScriptSerializer().Deserialize<Module[]>(File.ReadAllText(System.IO.Path.Combine(Base,"modules/catalog.json")));
+ static Module[] modules;
+ public static Module[] Modules {get{return modules??(modules=new JavaScriptSerializer().Deserialize<Module[]>(File.ReadAllText(System.IO.Path.Combine(Base,"modules/catalog.json"))));}set{modules=value;}}
  public static string Hash(string p){using(var h=SHA256.Create())using(var f=File.OpenRead(p))return BitConverter.ToString(h.ComputeHash(f)).Replace("-","").ToLowerInvariant();}
  public static string Inside(string root,string rel){string p=System.IO.Path.GetFullPath(System.IO.Path.Combine(root,rel.Replace('/',System.IO.Path.DirectorySeparatorChar)));string prefix=System.IO.Path.GetFullPath(root).TrimEnd(new char[] {System.IO.Path.DirectorySeparatorChar})+System.IO.Path.DirectorySeparatorChar;if(!p.StartsWith(prefix,StringComparison.OrdinalIgnoreCase))throw new Exception("Path outside root");string cur=p;while(cur.Length>=prefix.Length){if((File.Exists(cur)||Directory.Exists(cur))&&(File.GetAttributes(cur)&FileAttributes.ReparsePoint)!=0)throw new Exception("Reparse point rejected: "+cur);cur=System.IO.Path.GetDirectoryName(cur);}return p;}
  public static string SteamRoot(){foreach(string k in new[]{@"HKEY_CURRENT_USER\Software\Valve\Steam",@"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Valve\Steam",@"HKEY_LOCAL_MACHINE\SOFTWARE\Valve\Steam"}){object x=Registry.GetValue(k,k.Contains("CURRENT_USER")?"SteamPath":"InstallPath",null);if(x!=null&&Directory.Exists(x.ToString()))return x.ToString();}return "";}

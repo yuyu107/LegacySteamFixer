@@ -103,6 +103,8 @@ static int loaded_client_path(DWORD pid, char *path) {
 
 /* UTF-8 source; wide strings keep Chinese text independent of ANSI code page. */
 static int ui_language;
+static WCHAR result_message[1024];
+static HMODULE module_instance;
 static void detect_ui_language(void) {
     LANGID id = GetSystemDefaultUILanguage();
     ui_language = 0;
@@ -163,10 +165,10 @@ static const WCHAR *ui_text(const char *key) {
     return L"Unknown";
 }
 static void info(const char *message) {
-    MessageBoxW(0, ui_text(message), L"Steam VSZa launcher", MB_OK | MB_ICONINFORMATION);
+    lstrcpynW(result_message, ui_text(message), 1024);
 }
 static void fail(const char *message) {
-    MessageBoxW(0, ui_text(message), L"Steam VSZa launcher", MB_OK | MB_ICONERROR);
+    lstrcpynW(result_message, ui_text(message), 1024);
 }
 
 static void fail_stage(const char *stage, DWORD error) {
@@ -177,7 +179,7 @@ static void fail_stage(const char *stage, DWORD error) {
         L"無法套用暫時記憶體修補。\r\n\r\n階段：%s\r\nWindows 錯誤碼：%lu\r\n\r\n未修改任何磁碟上的 Steam 檔案。" :
         L"The temporary memory patch could not be applied.\r\n\r\nStage: %s\r\nWindows error: %lu\r\n\r\nNo Steam file was changed.";
     wsprintfW(message, format, ui_text(stage), error);
-    MessageBoxW(0, message, L"Steam VSZa launcher", MB_OK | MB_ICONERROR);
+    lstrcpynW(result_message, message, 1024);
 }
 
 static __declspec(noinline) void zero_bytes(void *target, DWORD count) {
@@ -222,16 +224,6 @@ static int read_file(const char *path, BYTE *buffer, DWORD capacity, DWORD *size
     return 1;
 }
 
-static const char *additional_command_line(void) {
-    const char *p = GetCommandLineA();
-    if (!p) return "";
-    while (*p == ' ' || *p == '\t') ++p;
-    if (*p == '"') {
-        ++p; while (*p && *p != '"') ++p; if (*p == '"') ++p;
-    } else while (*p && *p != ' ' && *p != '\t') ++p;
-    while (*p == ' ' || *p == '\t') ++p;
-    return p;
-}
 static int same_executable(const char *a, const char *b) {
     HANDLE x, y; BY_HANDLE_FILE_INFORMATION ix, iy; int same = 0;
     x = CreateFileA(a, 0, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, 0, OPEN_EXISTING, 0, 0);
@@ -246,7 +238,7 @@ static int same_executable(const char *a, const char *b) {
     CloseHandle(x); return same;
 }
 
-int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous, LPSTR command, int show) {
+static int apply_patch(void) {
     static char own_dir[MAX_PATH];
     static char helper[MAX_PATH], hook_path[MAX_PATH];
 
@@ -256,7 +248,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous, LPSTR command, int sh
     static char steam_dir[MAX_PATH], steam_exe[MAX_PATH], steam_command_line[MAX_PATH + 1024];
     STARTUPINFOA si;
     DWORD steam_dir_size = sizeof(steam_dir);
-    const char *args = additional_command_line();
+    const char *args = "";
     PROCESS_INFORMATION pi;
     static BYTE hook[0x6C0]; BYTE original[9], jump[9] = {0xE9,0,0,0,0,0x90,0x90,0x90,0x90};
     const BYTE expected[9] = {0x55,0x8B,0xEC,0x81,0xEC,0x8C,0x02,0x00,0x00};
@@ -270,10 +262,9 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous, LPSTR command, int sh
 
     int i;
 
-    (void)instance; (void)previous; (void)command; (void)show;
     detect_ui_language();
     zero_bytes(&pi, sizeof(pi));
-    GetModuleFileNameA(0, own_dir, sizeof(own_dir)); dirname_in_place(own_dir);
+    GetModuleFileNameA(module_instance, own_dir, sizeof(own_dir)); dirname_in_place(own_dir);
     wsprintfA(helper, "%s\\steam_zstd.dll", own_dir);
     wsprintfA(hook_path, "%s\\vsza_hook.bin", own_dir);
     if (GetFileAttributesA(helper) == INVALID_FILE_ATTRIBUTES ||
@@ -511,4 +502,18 @@ patch_fail:
 cleanup:
     if (pi.hProcess) CloseHandle(pi.hProcess);
     return 4;
+}
+
+/* Called by the 32-bit Fixer on its worker thread. No launcher UI or DllMain work. */
+__declspec(dllexport) int __cdecl EnableZstd(WCHAR *message, DWORD capacity) {
+    int result;
+    result_message[0] = 0;
+    result = apply_patch();
+    if (message && capacity) lstrcpynW(message, result_message, capacity);
+    return result;
+}
+BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved) {
+    (void)reserved;
+    if (reason == DLL_PROCESS_ATTACH) module_instance = instance;
+    return TRUE;
 }

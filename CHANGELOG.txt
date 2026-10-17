@@ -1,3 +1,9 @@
+0.4.0-test14
+GitHub Actions automatic build/test/package/release; version/tag validation; publish test14 to exercise updates from test13.
+
+0.4.0-test13
+Zstd callable module; persisted automatic update settings; verified runtime staging, restart installation and rollback. See RELEASE_NOTES.md and VALIDATION.txt.
+
 0.4.0-test8
 - 主窗口、设置和修补窗口改用无系统标题栏的 ThemedForm。
 - 提供拖动、最小化、最大化/还原、关闭和边缘缩放；最大化使用当前屏幕工作区。
