@@ -1,0 +1,9 @@
+using System;using System.IO;
+class SteamDetectionTests {
+ static void A(bool value,string message){if(!value)throw new Exception(message);}
+ static void Main(){string root=Path.Combine(Path.GetTempPath(),"steam-detection-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(root);string variable="FIXER_STEAM_DETECTION_TEST";string saved=Environment.GetEnvironmentVariable(variable);
+ try{string stale=Path.Combine(root,"removed"),valid=Path.Combine(root,"Steam 中文"),other=Path.Combine(root,"OtherSteam");Directory.CreateDirectory(stale);Directory.CreateDirectory(valid);Directory.CreateDirectory(other);File.WriteAllText(Path.Combine(valid,"steam.exe"),"fixture");File.WriteAllText(Path.Combine(other,"steam.exe"),"fixture");
+ A(!Core.IsSteamRoot(stale),"existing stale folder must be rejected");A(Core.IsSteamRoot(valid),"folder containing steam.exe accepted");A(Core.FindSteamRoot(new[]{stale,valid,other})==valid,"skip stale registration, preserve priority");A(Core.FindSteamRoot(new[]{Path.Combine(valid,"steam.exe")})==valid,"SteamExe registry value accepted");A(Core.FindSteamRoot(new[]{"\""+valid+"\""})==valid,"quoted path accepted");Environment.SetEnvironmentVariable(variable,valid);A(Core.FindSteamRoot(new[]{"%"+variable+"%"})==valid,"expand environment variable");A(Core.FindSteamRoot(new[]{null,"",stale})=="","no installation yields empty result");File.Delete(Path.Combine(valid,"steam.exe"));A(!Core.IsSteamRoot(valid)&&Core.FindSteamRoot(new[]{valid,other})==other,"removed executable is detected on retry");
+ Console.WriteLine("PASS: stale directory refusal, installation priority, executable registry values, Unicode and quoted paths, environment expansion, missing installation, detection after executable removal. No Windows registry or UI test.");
+ }finally{Environment.SetEnvironmentVariable(variable,saved);Directory.Delete(root,true);}}
+}

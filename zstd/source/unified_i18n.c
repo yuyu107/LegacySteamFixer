@@ -378,7 +378,7 @@ static int apply_patch(void) {
             for (i = 0; (DWORD)i < hook_size && installed[i] == hook[i]; ++i) {}
             if ((DWORD)i == hook_size) {
                 info("This Steam process is already patched.");
-                CloseHandle(pi.hProcess); return 0;
+                CloseHandle(pi.hProcess); return 1; /* Already enabled; no second injection. */
             }
         }
         goto version_fail;

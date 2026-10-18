@@ -2,6 +2,6 @@ SteamLegacyZstd
 https://github.com/yuyu107/SteamLegacyZstd
 Based on SteamLegacyZstd_Unified_test4_i18n (2026-10-02).
 In Fixer test13, launcher source is adapted into an x86 callable DLL with no standalone UI. Decoder DLL and hook are unchanged. Original licenses retained.
-6df6d82ce5bfea5423a372a49ae2b435a8274d1a19ae59f479c9fee9f342cf6d  LegacySteam-ZstdModule.dll
+c2e7e6767ab09c66245a082d75beb71fa73c89229e7d980ec962c9f968edebba  LegacySteam-ZstdModule.dll
 6dea9ef6f0fd1a956dc81f63551fb27ff280082b87de4790271e5f6f3247e5bb  steam_zstd.dll
 fcbadbf70e968b380c564258401c02d28d0b0d676d5b0b43ecd67d54880db055  vsza_hook.bin

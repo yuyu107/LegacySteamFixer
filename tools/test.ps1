@@ -19,14 +19,19 @@ class Fixture {static void Main(){}}
     if ($LASTEXITCODE -ne 0) { throw 'Update fixture compilation failed' }
     python tests/self_update_fixtures.py $root $fixtureExe $testRoot
     if ($LASTEXITCODE -ne 0) { throw 'ZIP fixture generation failed' }
+    $gameSource = Join-Path $stubDirectory 'TestGame.cs'
+    $gameExe = Join-Path $stubDirectory 'TestGame.exe'
+    'class TestGame {static void Main(){System.Threading.Thread.Sleep(60000);}}' | Set-Content $gameSource -Encoding UTF8
+    & $csc /nologo /platform:x64 "/out:$gameExe" $gameSource
+    if ($LASTEXITCODE -ne 0) { throw 'Game process fixture compilation failed' }
     $sources = Get-ChildItem src/*.cs | ForEach-Object { $_.FullName }
-    foreach ($name in @('CoreTests', 'UpdateTests', 'ZstdSupportTests', 'SteamLaunchModesTests', 'LaunchOptionsTests', 'SelfUpdateTests')) {
+    foreach ($name in @('CoreTests', 'UpdateTests', 'ZstdSupportTests', 'SteamLaunchModesTests', 'LaunchOptionsTests', 'SelfUpdateTests', 'SteamDetectionTests', 'GameToolsTests')) {
         $entry = if ($name -eq 'CoreTests') { 'Tests' } else { $name }
         # Run beside modules and native assets, matching the runtime layout.
         $exe = Join-Path $root "$name.exe"
-        & $csc /nologo /target:exe "/main:$entry" "/out:$exe" /reference:System.Windows.Forms.dll /reference:System.Drawing.dll /reference:System.Web.Extensions.dll @sources (Join-Path $root "tests\$name.cs")
+        & $csc /nologo /target:exe /platform:x86 "/main:$entry" "/out:$exe" /reference:System.Windows.Forms.dll /reference:System.Drawing.dll /reference:System.Web.Extensions.dll @sources (Join-Path $root "tests\$name.cs")
         if ($LASTEXITCODE -ne 0) { throw "Test compilation failed: $name" }
-        if ($name -eq 'SelfUpdateTests') { & $exe $testRoot } else { & $exe }
+        if ($name -eq 'SelfUpdateTests') { & $exe $testRoot } elseif ($name -eq 'GameToolsTests') { & $exe $gameExe } else { & $exe }
         if ($LASTEXITCODE -ne 0) { throw "Test failed: $name" }
         Remove-Item $exe
     }

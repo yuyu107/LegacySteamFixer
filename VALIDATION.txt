@@ -1,4 +1,4 @@
-LegacySteamFixer 0.4.0-test14
+LegacySteamFixer 0.4.0-test15
 Managed x86 UI and x86/x64 probes compiled with Mono C# 6.8; Windows Build.cmd retained.
 Native x86 Zstd DLL compiled with ziglang 0.17.0, -Wall -Wextra -Werror.
 Verified DLL export EnableZstd and packaged module SHA256.
@@ -7,3 +7,5 @@ PASS independent Python ZIP fixtures: traversal, case duplicates, reserved names
 PASS staged file tamper refusal, mid-update rollback, full replacement, retained profiles/settings/logs, obsolete Zstd launcher removal, daily settings round trip, cancelled download before writes.
 Core catalog loading is lazy so the temporary update worker can hash files without runtime modules beside itself.
 NOT TESTED: Windows UI/DPI, UAC, real Steam module call, live GitHub download, actual process exit/replacement/restart. GitHub Actions provides Windows compilation/tests and automated publication; results are recorded by the workflow.
+
+New checks: Steam directory detection, distinct repeated Zstd outcomes, exact process directory boundary/PID creation identity, verified archive cleanup and preservation of unrelated files. Windows CI also builds an x64 sleeping test fixture and exercises discovery/termination from an x86 test controller. Real games and Steam uninstall UI are not exercised.
