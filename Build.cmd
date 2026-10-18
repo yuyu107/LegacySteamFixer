@@ -6,7 +6,7 @@ if not exist "%FIXER_CSC%" (
  if not defined CI pause
  exit /b 1
 )
-"%FIXER_CSC%" /nologo /target:winexe /platform:x86 /out:LegacySteamFixer.exe /reference:System.Windows.Forms.dll /reference:System.Drawing.dll /reference:System.Web.Extensions.dll src\Core.cs src\DeltaPatch.cs src\Program.cs src\Analysis.cs src\AutoBridge.cs src\LaunchProfiles.cs src\ZstdSupport.cs src\UiTheme.cs src\ThemedForm.cs src\UiDialogs.cs src\AppInfo.cs src\UpdateService.cs src\LaunchOptions.cs src\SteamLaunchModes.cs src\UpdateSettings.cs src\SelfUpdate.cs src\SafeZip.cs src\DiagnosticsLogBox.cs src\GameTools.cs
+"%FIXER_CSC%" /nologo /target:winexe /platform:x86 /out:LegacySteamFixer.exe /reference:System.Windows.Forms.dll /reference:System.Drawing.dll /reference:System.Web.Extensions.dll src\Core.cs src\DeltaPatch.cs src\Program.cs src\Analysis.cs src\AutoBridge.cs src\LaunchProfiles.cs src\ZstdSupport.cs src\UiTheme.cs src\ThemedForm.cs src\UiDialogs.cs src\AppInfo.cs src\UpdateService.cs src\LaunchOptions.cs src\SteamLaunchModes.cs src\UpdateSettings.cs src\SelfUpdate.cs src\SafeZip.cs src\DiagnosticsLogBox.cs src\GameTools.cs src\GameRuntime.cs
 if errorlevel 1 goto fail
 if not exist probes mkdir probes
 "%FIXER_CSC%" /nologo /target:exe /platform:x86 /out:probes\SteamProbe-x86.exe src\SteamProbe.cs

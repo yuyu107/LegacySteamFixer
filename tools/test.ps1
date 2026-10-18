@@ -25,7 +25,7 @@ class Fixture {static void Main(){}}
     & $csc /nologo /platform:x64 "/out:$gameExe" $gameSource
     if ($LASTEXITCODE -ne 0) { throw 'Game process fixture compilation failed' }
     $sources = Get-ChildItem src/*.cs | ForEach-Object { $_.FullName }
-    foreach ($name in @('CoreTests', 'UpdateTests', 'ZstdSupportTests', 'SteamLaunchModesTests', 'LaunchOptionsTests', 'SelfUpdateTests', 'SteamDetectionTests', 'GameToolsTests')) {
+    foreach ($name in @('CoreTests', 'UpdateTests', 'ZstdSupportTests', 'SteamLaunchModesTests', 'LaunchOptionsTests', 'SelfUpdateTests', 'SteamDetectionTests', 'GameToolsTests', 'GameRuntimeTests')) {
         $entry = if ($name -eq 'CoreTests') { 'Tests' } else { $name }
         # Run beside modules and native assets, matching the runtime layout.
         $exe = Join-Path $root "$name.exe"
