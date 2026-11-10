@@ -1,5 +1,7 @@
 # LegacySteamFixer
 
+Steam 首次安装提示不支持 Windows：点击 Steam 工具区“修复首次安装”；适用范围、32 位注意事项及恢复步骤见 Steam-FirstInstall-Help.txt。
+
 面向 Windows 7 SP1 / 8.1 等旧系统的 Steam 游戏兼容工具。当前版本：**0.4.0-test15（测试版）**。
 
 ## 使用

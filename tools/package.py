@@ -5,7 +5,7 @@ root=Path(__file__).resolve().parents[1]
 version=re.search(r'const string Version="([^"]+)"',(root/'src/AppInfo.cs').read_text()).group(1)
 output=Path(sys.argv[1]).resolve() if len(sys.argv)>1 else root/'dist'
 output.mkdir(parents=True,exist_ok=True)
-files=[root/p for p in ['LegacySteamFixer.exe','LegacySteamFixer.exe.config','README.txt','RELEASE_NOTES.md','VALIDATION.txt','LICENSE.txt','LICENSE-GMod.txt','LICENSE-tModLoader.txt','UPSTREAM.txt']]
+files=[root/p for p in ['LegacySteamFixer.exe','LegacySteamFixer.exe.config','README.txt','RELEASE_NOTES.md','VALIDATION.txt','LICENSE.txt','LICENSE-GMod.txt','LICENSE-tModLoader.txt','UPSTREAM.txt','Steam-FirstInstall-Help.txt']]
 for directory in ['modules','inject','templates','probes','zstd']:
     files.extend(p for p in (root/directory).rglob('*') if p.is_file() and 'source' not in p.relative_to(root).parts and p.suffix not in ['.pdb','.obj','.lib'])
 for required in ['probes/SteamProbe-x86.exe','probes/SteamProbe-x64.exe','zstd/LegacySteam-ZstdModule.dll','zstd/steam_zstd.dll','zstd/vsza_hook.bin']:

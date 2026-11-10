@@ -6,6 +6,7 @@ static class UiIcons {
  public static Icon App {get{if(app==null){using(var stream=typeof(UiIcons).Assembly.GetManifestResourceStream("LegacySteamFixer.Icon")){if(stream!=null)using(var icon=new Icon(stream)){app=(Icon)icon.Clone();}}}return app;}}
  static bool Has(string text,params string[] terms){foreach(string term in terms)if(text.IndexOf(term,StringComparison.OrdinalIgnoreCase)>=0)return true;return false;}
  public static string Kind(string text){text=text??"";if(text=="—"||text=="□"||text=="×")return "none";
+ if(Has(text,"first install","首次安装","首次安裝"))return "wrench";
  if(Has(text,"automatic","自动检查","自動檢查"))return "clock";
  if(Has(text,"follow log","自动滚动","自動捲動"))return "download";
  if(Has(text,"force close","强制","強制"))return "force";

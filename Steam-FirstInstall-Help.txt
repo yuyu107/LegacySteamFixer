@@ -1,0 +1,30 @@
+﻿Steam 首次安装提示“不支持当前 Windows”
+========================================
+适用：首次安装/初始化下载时出现不支持系统提示，而非所有 Steam 启动故障。
+Win8.1 32 位：用户实测以下方式成功。Win7、其他位数尚未验证，不能保证有效。
+
+使用 Fixer
+1. 选择包含 steam.exe 的安装目录，点击“修复首次安装”→“修复并启动 Steam”。
+2. Fixer 请求 Steam 正常退出，必要时请求管理员权限；无法退出时停止操作，不强制结束。
+3. 仅将 Steam 根目录 tier0_s.dll、tier0_s64.dll 移到 LegacySteamFixer-InstallRepair\时间-标识\ 下。
+4. 带 -no-cef-sandbox 启动 Steam，让引导程序尝试重新下载兼容客户端。下载和最终选择由 Steam 完成，Fixer 不保证服务器始终提供旧客户端。
+5. 等待下载和登录界面。Fixer 的“已请求启动”不表示 Steam 已修好。
+
+后续启动：安装目录生成 Start-Steam-Legacy.cmd，可双击再次使用相同参数。
+-no-cef-sandbox 会关闭 CEF 沙箱，仅在此兼容方案需要时使用。Fixer 不修改已有快捷方式、注册表兼容层、steam.cfg，也不自动禁用更新。
+游戏目录、steamapps、userdata、账户和登录配置不会被清理。
+如两个 DLL 已缺失，重复点击只重试启动，不创建重复空备份。
+如 Steam 重新下载后恢复了 DLL，再执行修复将保留新的独立备份。
+
+备份恢复：完全退出 Steam，在对应备份目录查看 backup.json。仅当根目录同名 DLL 仍缺失且未重新下载客户端时，将原 DLL 移回；不要覆盖新下载客户端的文件或混用不同版本。保留备份供排查。
+
+32 位系统与 VxKex
+- 64 位 Steam 主程序无法在 32 位 Windows 运行，本功能不能跨架构运行程序。
+- 曾出现兼容层误报架构，令 Steam 获取 64 位客户端。应先使用正确的 32 位 Steam 引导程序，并检查/停用相关架构伪装后再试。
+- 此首次安装方案不要求启用 VxKex；不要把“Win8.1 32 位已验证”写成“Win7 32 位已验证”。
+
+Zstd 下载补丁
+首次安装修复与 Zstd 是不同操作。Steam 成功运行后，若遇到新压缩内容下载问题，再使用“启用 Zstd 下载补丁”。用户已在 Win8.1 32 位验证 Zstd 可用；仍须满足补丁支持的客户端文件校验。
+
+English
+This workaround addresses the unsupported-Windows message during first installation. It was verified by the user on 32-bit Windows 8.1 only. Fixer requests normal Steam shutdown, moves only the two root tier0_s DLLs into a timestamped backup, and launches steam.exe with -no-cef-sandbox (disabling the CEF sandbox). Steam controls the resulting client download. A retry launcher is saved beside steam.exe. Games, account data and existing shortcuts are retained. This does not make a 64-bit client executable run on a 32-bit OS. See backup.json before manually restoring missing original files; never overwrite a newer client with old DLLs.
