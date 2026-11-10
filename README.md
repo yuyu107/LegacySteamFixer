@@ -25,6 +25,9 @@
 
 下载按钮打开 Steam 官网安装器页面，不提供未经确认的历史客户端镜像。安装后仍须核对客户端是否在相应修补的支持范围。
 
+> [!NOTE]
+> **32 位系统安装 / 更新 Steam 后提示不支持？** Windows 8.1 32 位已实测可通过恢复旧版更新分支解决，随后 Zstd 补丁也可正常使用；Windows 7 32 位可能类似（尚未验证）。[查看详细故障排除步骤](https://github.com/yuyu107/SteamLegacyZstd/blob/main/docs/STEAM_32BIT_RECOVERY.md)。
+
 Zstd 功能来自 [SteamLegacyZstd](https://github.com/yuyu107/SteamLegacyZstd)，针对指定 32 位 `steamclient.dll`，必须匹配 SHA-256：
 
 ```
@@ -32,20 +35,6 @@ d0e83c515f17ca57090c8c73664e5d61e37eae718dfa3a5cbb1e4b909548fc34
 ```
 
 暂停下载并关闭游戏后启用，成功后恢复下载。Steam 完全退出或重启后需再次启用。原有特殊启动参数需要由用户先正常启动 Steam，再启用补丁。
-
-### Windows 8.1 32 位已发现系统不支持错误（Windows 7 32 位可能类似）
-
-2026-11-11 的 Windows 8.1 **32 位**实测发现：从较旧的 Steam 安装程序安装 / 更新，首次可能下载到 `steam_client_win32`（`1769731672`），之后出现“您当前的操作系统版本不再支持 Steam”，无法打开客户端。即使 Steam 已下载、校验成功，也不意味着它选对了旧系统兼容分支。**此问题发生在 Steam 客户端安装阶段，与 Fixer 的游戏修补或 Zstd 解压功能不同。** Windows 7 32 位可能遇到相同问题，但仍待验证。
-
-在该次测试中，以下做法成功恢复了旧版客户端：
-
-1. 完全退出 Steam，备份重要数据；不要删除 `steamapps` 或游戏文件。
-2. **仅在 Steam 安装目录根目录**备份并移走 `tier0_s.dll` 与 `tier0_s64.dll`（也可以在备份后删除）。不要修改游戏文件夹里的同名 DLL。
-3. 在 Steam 快捷方式目标路径后添加 `-no-cef-sandbox`，例如 `"C:\Program Files\Steam\steam.exe" -no-cef-sandbox`，使用该快捷方式启动 Steam。
-4. 此次完整性修复重新获取了 `steam_client_legacy_win32`（`1730853000`），Steam 成功登录并开始下载 Terraria，之后 **Zstd 补丁也已在 Windows 8.1 32 位实测可用**。打开“帮助 → 关于 Steam”核对版本。
-5. **版本和 `steamclient.dll` SHA-256 均符合本节要求时**，再通过 Fixer 启用 Zstd；Fixer 不会自动修复此类 Steam 更新分支选择问题。
-
-该步骤记录 Windows 8.1 32 位实测，Windows 7 32 位尚未验证，不保证所有 32 位 Windows 都有效。日志尚不能单独证明删除某个 DLL 或 `-no-cef-sandbox` 哪一步决定了分支；该参数主要用于 CEF 兼容，**会降低沙盒隔离保护**。若无效，请保留 `Steam/logs/bootstrap_log.txt`、错误截图、Steam 版本以及 Fixer 的诊断结果。更详细的说明见 [SteamLegacyZstd 的故障排除](https://github.com/yuyu107/SteamLegacyZstd#32-位-windows-安装--更新后提示系统不支持)。
 
 ## 已知情况
 
